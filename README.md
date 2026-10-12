@@ -1,2 +1,7 @@
-# 3D_hangtian-preview
-Generated public Space City 3D preview; private development repository stays private.
+# 航天基地 3D 预览
+
+在线查看：https://rmlearners.github.io/3D_hangtian-preview/
+
+此仓库仅托管生成的公共预览。建筑外观仍在核对，高度与部分细节为估计，尚未验证打印。非官方作品；底图与游戏素材版权归相应权利方。
+
+网页代码、几何和内嵌底图可由浏览器下载；开发记录、参考缓存和凭据不发布。版本见 version.json。
