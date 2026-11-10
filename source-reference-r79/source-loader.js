@@ -10,6 +10,19 @@ async function checkedFetch(url) {
 }
 
 let keyPromise;
+async function fetchPackage(name) {
+  const path = 'apps/web/public/assets/spacecenter/chunks/' + name;
+  const cdn = await fetch(upstream + path);
+  if (cdn.ok) return new Uint8Array(await cdn.arrayBuffer());
+  // jsDelivr can reject an uncached file when the repository package exceeds
+  // its 50 MB limit. GitHub's contents API serves the pinned small file.
+  const api = await (await checkedFetch(
+    `https://api.github.com/repos/MapleEve/DF3dMapTool/contents/${path}?ref=${revision}`)).json();
+  if (api.encoding !== 'base64' || !api.content) throw new Error('上游分块内容不可用：' + name);
+  const binary = atob(api.content.replace(/\s/g, ''));
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
+}
+
 async function getKey() {
   if (!keyPromise) keyPromise = (async () => {
     const source = await (await checkedFetch(upstream + 'apps/web/src/engine/dmapKey.ts')).text();
@@ -31,8 +44,7 @@ async function getKey() {
 
 export async function loadChunk(name) {
   if (!/^c_\d+_-?\d+_l[02]\.dmap$/.test(name)) throw new Error('无效分块名称');
-  const bytes = new Uint8Array(await (await checkedFetch(
-    upstream + 'apps/web/public/assets/spacecenter/chunks/' + name)).arrayBuffer());
+  const bytes = await fetchPackage(name);
   const view = new DataView(bytes.buffer);
   if (new TextDecoder().decode(bytes.subarray(0, 4)) !== 'DMAP' || view.getUint32(4, true) !== 1)
     throw new Error('不支持的数据包版本');
